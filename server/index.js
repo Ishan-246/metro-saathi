@@ -2,6 +2,7 @@ import express from 'express';
 import { randomUUID } from 'node:crypto';
 import { classifyReport } from './ai.js';
 import { priorityDetails } from './priority.js';
+import { groupIncidents } from './incidents.js';
 
 const app = express();
 const port = Number(process.env.PORT) || 3000;
@@ -20,7 +21,9 @@ const refreshPriority = (report) => {
 
 const samples = [
   ['Vanaz', 'Escalator band aahe, elderly passenger is stuck near it'],
-  ['Deccan Gymkhana', 'Khup gardi aahe platform var'],
+  ['Deccan Gymkhana', 'Khup gardi aahe platform var, slippery floor'],
+  ['Garware College', 'Crowd building at the platform entrance, slippery floor'],
+  ['Chhatrapati Sambhaji Udyan', 'Packed platform, gardi is increasing, slippery floor'],
   ['PMC Bhavan', 'तिकिट मशीन काम करत नाही'],
   ['District Court', 'Smoke smell near the electrical wire'],
   ['Pune Railway Station', 'Toilet area dirty and bad smell'],
@@ -36,6 +39,8 @@ for (const [station, text] of samples) {
   refreshPriority(report);
   reports.push(report);
 }
+const crowdingSamples = reports.filter((r) => ['Deccan Gymkhana', 'Garware College', 'Chhatrapati Sambhaji Udyan'].includes(r.station) && r.category === 'crowding');
+crowdingSamples.forEach((report, index) => { report.createdAt = new Date(Date.now() - (25 - index * 8) * 60 * 1000).toISOString(); });
 reports[0].status = 'in_progress';
 reports[0].notes.push({ text: 'Technician checking the lift', at: new Date().toISOString() });
 for (const report of [reports[4], reports[7]]) {
@@ -46,6 +51,7 @@ for (const report of [reports[4], reports[7]]) {
 app.get('/', (_request, response) => response.set('Content-Type', 'text/plain; charset=utf-8').send('Metro Saathi server is running.'));
 app.get('/api/status', (_request, response) => response.json({ ai: false }));
 app.get('/api/reports', (_request, response) => response.json(reports));
+app.get('/api/incidents', (_request, response) => response.json(groupIncidents(reports)));
 
 app.post('/api/reports', (request, response) => {
   const { station, text } = request.body ?? {};

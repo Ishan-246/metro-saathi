@@ -105,6 +105,7 @@ Tonight
 2. server/priority.js + keyword fallback in server/ai.js + all API routes + sample data → test with curl/Thunder Client → commit
 3. React commuter page + result card → commit
 4. React staff page: stat cards, grouped list, statuses, notes, reopen, 3-sec refresh → commit
+4b. server/incidents.js + GET /api/incidents + incident section and three linked crowding samples → commit
 5. Write the OpenAI path in server/ai.js (used only when a key exists; untested until tomorrow) → commit → push to GitHub
 Metro sprint (12:00–1:15)
 6. Aqua Line strip (laptop) / station chips (phone), utility bar, styling polish → commit
@@ -113,7 +114,7 @@ Metro Bhavan (3:00–4:30)
 8. Deploy to Render, test both pages, record a backup video, push, submit before 4:30. No new features after 4:00.
 
 ## If we fall behind, cut in this order
-1. Notes  2. Station chips on phone  3. Styling polish  4. Real OpenAI call (keywords still work)
+1. Incident grouping (Step 4b)  2. Notes  3. Station chips on phone  4. Styling polish  5. Real OpenAI call (keywords still work)
 Never cut: submit, priority formula, sorted staff list, status buttons, emergency banner.
 
 ## How I work
