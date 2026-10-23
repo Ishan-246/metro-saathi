@@ -17,5 +17,5 @@ export function priorityDetails(analysis, similarToday = 0) {
   if (analysis.vulnerable) reasonParts.push('vulnerable commuter');
   if (analysis.crowded) reasonParts.push('crowded');
   if (similarToday) reasonParts.push(`${similarToday} similar`);
-  return { priority, label, reason: reasonParts.join('\u00b7'), team };
+  return { priority, label, reason: reasonParts.join(' · '), team };
 }

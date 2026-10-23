@@ -51,3 +51,12 @@ footer { border-top: 1px solid #DADCE0; background: white; padding: 18px max(cal
 .report-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }.report-actions button, .note-form button { border: 0; background: #C2539F; color: white; border-radius: 5px; padding: 9px 12px; cursor: pointer; }.note-form { display: flex; gap: 8px; margin-top: 10px; }.note-form input { flex: 1; min-width: 0; border: 1px solid #3B5BA9; border-radius: 5px; padding: 8px; }
 .incident-card { background: white; border: 1px solid #DADCE0; border-left: 4px solid #B26A00; border-radius: 6px; padding: 13px 15px; margin: 8px 0; line-height: 1.55; }.incident-card > strong { text-transform: capitalize; color: #2B2B2B; }.incident-card > span { font-weight: 650; color: #B26A00; }.muted { color: #666; font-size: 14px; }
 @media (max-width: 740px) { .stats { grid-template-columns: repeat(2, 1fr); }.station-dots { justify-content: flex-start; scroll-snap-type: x mandatory; }.station-dot { scroll-snap-align: start; }.station-dot span { max-width: 74px; }.staff-main { padding-top: 20px; } }
+.priority-tag.emergency, .priority-tag.high { background: #C62828; color: #fff; }
+.priority-tag.medium { background: #B26A00; color: #fff; }
+.priority-tag.low { background: #2E7D32; color: #fff; }
+.report-summary { font-size: 16px; }
+.report-meta { font-size: 13px; }
+.report-actions button, .note-form button { font-size: 14px; }
+.resolved-section { margin: 28px 0; background: white; border: 1px solid #DADCE0; border-radius: 8px; padding: 14px 16px; }
+.resolved-section > summary { color: #5A4E9C; font-weight: 700; font-size: 17px; cursor: pointer; }
+.resolved-section[open] > summary { margin-bottom: 12px; }
