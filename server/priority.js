@@ -10,10 +10,12 @@ export function priorityDetails(analysis, similarToday = 0) {
     : analysis.category === 'cleanliness' ? 'Housekeeping'
       : ['crowding', 'safety'].includes(analysis.category) ? 'Station security'
         : analysis.category === 'ticketing' ? 'Ticketing desk' : 'Station manager';
-  const reasonParts = [categoryLabel[analysis.category] ?? 'Other'];
+  const reasonParts = [];
+  if (analysis.emergency) reasonParts.push('Emergency');
+  reasonParts.push(categoryLabel[analysis.category] ?? 'Other');
   if (analysis.danger) reasonParts.push('danger reported');
   if (analysis.vulnerable) reasonParts.push('vulnerable commuter');
-  if (analysis.crowded) reasonParts.push('crowding');
+  if (analysis.crowded) reasonParts.push('crowded');
   if (similarToday) reasonParts.push(`${similarToday} similar`);
-  return { priority, label, reason: reasonParts.join(' · '), team };
+  return { priority, label, reason: reasonParts.join('\u00b7'), team };
 }

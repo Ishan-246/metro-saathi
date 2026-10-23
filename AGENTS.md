@@ -18,7 +18,7 @@ Page 1 — "/" Commuter page
 - Top utility bar: "Prototype for Pune Metro Aqua Line · Not an official Maha-Metro service" on the left; "A+ A A−" text-size buttons on the right.
 - Header: "Metro Saathi" + status badge ("AI ready" or "Offline fallback").
 - Form card: "स्थानक · Station" dropdown (16 Aqua Line stations), "तक्रार · What's wrong?" text area, "तक्रार नोंदवा · Submit report" button. Min 5 characters, else show "Please describe the problem".
-- After submit: result card with priority label + number, category, English summary, team it went to, number of similar reports at that station today, and the reason line.
+- After submit, commuter result card shows only: “Complaint registered”, short reference ID (MS-1042 style), team, station, “Urgent” (priority 70+) or “Normal”, and similar reports today. If emergency, show the red emergency banner. Priority number, label, and reason are staff-only.
 - If Emergency: red banner on the result card: "Emergency: tell station staff now, or call 112. Pune Metro helpline: 1800 270 5501."
 - Laptop: short intro on the left, form card on the right. Phone: one column.
 - Footer: small "Staff view" link.

@@ -6,6 +6,7 @@ import { priorityDetails } from './priority.js';
 const app = express();
 const port = Number(process.env.PORT) || 3000;
 const reports = [];
+let nextReferenceNumber = 1042;
 app.use(express.json());
 
 const todayStart = () => { const d = new Date(); d.setHours(0, 0, 0, 0); return d; };
@@ -26,7 +27,7 @@ const samples = [
   ['Ramwadi', 'QR ticket payment failing'],
   ['Vanaz', 'Lift is broken near the entrance'],
   ['Deccan Gymkhana', 'Platform railing needs repair'],
-  ['PMC Bhavan', 'Escalator making a loud noise'],
+  ['PMC Bhavan', 'तिकिट मशीन काम करत नाही'],
   ['Ramwadi', 'Crowd rush at gate, child needs help'],
 ];
 for (const [station, text] of samples) {
@@ -42,7 +43,7 @@ for (const report of [reports[4], reports[7]]) {
   report.resolvedAt = new Date().toISOString();
 }
 
-app.get('/', (_request, response) => response.type('text/plain').send('Metro Saathi server is running.'));
+app.get('/', (_request, response) => response.set('Content-Type', 'text/plain; charset=utf-8').send('Metro Saathi server is running.'));
 app.get('/api/status', (_request, response) => response.json({ ai: false }));
 app.get('/api/reports', (_request, response) => response.json(reports));
 
@@ -51,7 +52,7 @@ app.post('/api/reports', (request, response) => {
   if (typeof station !== 'string' || !station.trim() || typeof text !== 'string' || text.trim().length < 5) {
     return response.status(400).json({ error: 'Station and a description of at least 5 characters are required.' });
   }
-  const report = { id: randomUUID(), station: station.trim(), text: text.trim(), ...classifyReport(text.trim()), status: 'open', notes: [], createdAt: new Date().toISOString(), resolvedAt: null };
+  const report = { id: randomUUID(), referenceId: `MS-${nextReferenceNumber++}`, station: station.trim(), text: text.trim(), ...classifyReport(text.trim()), status: 'open', notes: [], createdAt: new Date().toISOString(), resolvedAt: null };
   refreshPriority(report);
   reports.push(report);
   const recentResolved = reports.find((item) => item.id !== report.id && item.station === report.station && item.category === report.category && item.status === 'resolved' && item.resolvedAt && Date.now() - new Date(item.resolvedAt).getTime() <= 2 * 60 * 60 * 1000);
