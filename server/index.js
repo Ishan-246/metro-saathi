@@ -1,14 +1,80 @@
 import express from 'express';
+import { randomUUID } from 'node:crypto';
+import { classifyReport } from './ai.js';
+import { priorityDetails } from './priority.js';
 
 const app = express();
 const port = Number(process.env.PORT) || 3000;
-
+const reports = [];
 app.use(express.json());
 
-app.get('/', (_request, response) => {
-  response.type('text/plain').send('Metro Saathi server is running.');
+const todayStart = () => { const d = new Date(); d.setHours(0, 0, 0, 0); return d; };
+const isToday = (date) => new Date(date) >= todayStart();
+const refreshPriority = (report) => {
+  const similarToday = reports.filter((item) => item.id !== report.id && item.station === report.station &&
+    item.category === report.category && isToday(item.createdAt)).length;
+  Object.assign(report, priorityDetails(report, similarToday));
+  report.similarToday = similarToday;
+};
+
+const samples = [
+  ['Vanaz', 'Escalator band aahe, elderly passenger is stuck near it'],
+  ['Deccan Gymkhana', 'Khup gardi aahe platform var'],
+  ['PMC Bhavan', 'तिकिट मशीन काम करत नाही'],
+  ['District Court', 'Smoke smell near the electrical wire'],
+  ['Pune Railway Station', 'Toilet area dirty and bad smell'],
+  ['Ramwadi', 'QR ticket payment failing'],
+  ['Vanaz', 'Lift is broken near the entrance'],
+  ['Deccan Gymkhana', 'Platform railing needs repair'],
+  ['PMC Bhavan', 'Escalator making a loud noise'],
+  ['Ramwadi', 'Crowd rush at gate, child needs help'],
+];
+for (const [station, text] of samples) {
+  const now = new Date();
+  const report = { id: randomUUID(), station, text, ...classifyReport(text), status: 'open', notes: [], createdAt: now.toISOString(), resolvedAt: null };
+  refreshPriority(report);
+  reports.push(report);
+}
+reports[0].status = 'in_progress';
+reports[0].notes.push({ text: 'Technician checking the lift', at: new Date().toISOString() });
+for (const report of [reports[4], reports[7]]) {
+  report.status = 'resolved';
+  report.resolvedAt = new Date().toISOString();
+}
+
+app.get('/', (_request, response) => response.type('text/plain').send('Metro Saathi server is running.'));
+app.get('/api/status', (_request, response) => response.json({ ai: false }));
+app.get('/api/reports', (_request, response) => response.json(reports));
+
+app.post('/api/reports', (request, response) => {
+  const { station, text } = request.body ?? {};
+  if (typeof station !== 'string' || !station.trim() || typeof text !== 'string' || text.trim().length < 5) {
+    return response.status(400).json({ error: 'Station and a description of at least 5 characters are required.' });
+  }
+  const report = { id: randomUUID(), station: station.trim(), text: text.trim(), ...classifyReport(text.trim()), status: 'open', notes: [], createdAt: new Date().toISOString(), resolvedAt: null };
+  refreshPriority(report);
+  reports.push(report);
+  const recentResolved = reports.find((item) => item.id !== report.id && item.station === report.station && item.category === report.category && item.status === 'resolved' && item.resolvedAt && Date.now() - new Date(item.resolvedAt).getTime() <= 2 * 60 * 60 * 1000);
+  if (recentResolved) {
+    recentResolved.status = 'open';
+    recentResolved.resolvedAt = null;
+    recentResolved.notes.push({ text: 'Reopened: reported again', at: new Date().toISOString() });
+  }
+  return response.status(201).json(report);
 });
 
-app.listen(port, () => {
-  console.log(`Metro Saathi server listening on http://localhost:${port}`);
+app.patch('/api/reports/:id', (request, response) => {
+  const report = reports.find((item) => item.id === request.params.id);
+  if (!report) return response.status(404).json({ error: 'Report not found.' });
+  const { status, note } = request.body ?? {};
+  if (status !== undefined && !['open', 'in_progress', 'resolved'].includes(status)) return response.status(400).json({ error: 'Invalid status.' });
+  if (note !== undefined && (typeof note !== 'string' || !note.trim())) return response.status(400).json({ error: 'Note must not be empty.' });
+  if (status) {
+    report.status = status;
+    report.resolvedAt = status === 'resolved' ? new Date().toISOString() : null;
+  }
+  if (note) report.notes.push({ text: note.trim(), at: new Date().toISOString() });
+  return response.json(report);
 });
+
+app.listen(port, () => console.log(`Metro Saathi server listening on http://localhost:${port}`));
