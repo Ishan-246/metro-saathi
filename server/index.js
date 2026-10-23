@@ -1,11 +1,16 @@
 import express from 'express';
 import { randomUUID } from 'node:crypto';
+import { existsSync } from 'node:fs';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { classifyReport } from './ai.js';
 import { priorityDetails } from './priority.js';
 import { groupIncidents } from './incidents.js';
 
 const app = express();
 const port = Number(process.env.PORT) || 3000;
+const distPath = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../dist');
+const indexPath = path.join(distPath, 'index.html');
 const reports = [];
 let nextReferenceNumber = 1042;
 app.use(express.json());
@@ -48,7 +53,6 @@ for (const report of [reports[4], reports[7]]) {
   report.resolvedAt = new Date().toISOString();
 }
 
-app.get('/', (_request, response) => response.set('Content-Type', 'text/plain; charset=utf-8').send('Metro Saathi server is running.'));
 app.get('/api/status', (_request, response) => response.json({ ai: false }));
 app.get('/api/reports', (_request, response) => response.json(reports));
 app.get('/api/incidents', (_request, response) => response.json(groupIncidents(reports)));
@@ -82,6 +86,13 @@ app.patch('/api/reports/:id', (request, response) => {
   }
   if (note) report.notes.push({ text: note.trim(), at: new Date().toISOString() });
   return response.json(report);
+});
+
+app.use(express.static(distPath));
+app.use((request, response, next) => {
+  if (request.method !== 'GET' || request.path === '/api' || request.path.startsWith('/api/')) return next();
+  if (!existsSync(indexPath)) return next();
+  return response.sendFile(indexPath);
 });
 
 app.listen(port, () => console.log(`Metro Saathi server listening on http://localhost:${port}`));
