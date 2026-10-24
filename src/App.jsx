@@ -29,7 +29,7 @@ export default function App() {
           <div className="form-foot"><span>Minimum 5 characters</span><button className="primary" disabled={busy}>{busy ? 'Sending…' : 'तक्रार नोंदवा · Submit report'}</button></div>{error && <p className="error" role="alert">{error}</p>}
         </form>
         {report && <article className="result" aria-live="polite">{report.emergency && <div className="emergency">Emergency: tell station staff now, or call 112. Pune Metro helpline: 1800 270 5501.</div>}<h3 className="registered">Complaint registered</h3><p className="reference">Reference: {referenceFor(report)}</p>
-          <dl><div><dt>Sent to</dt><dd>{report.team}</dd></div><div><dt>Station</dt><dd>{report.station}</dd></div><div><dt>Priority</dt><dd>{report.priority >= 70 ? 'Urgent' : 'Normal'}</dd></div><div><dt>Similar reports today</dt><dd>{report.similarToday ?? 0}</dd></div></dl>
+          <dl><div><dt>Sent to</dt><dd>{report.team}</dd></div><div><dt>Station</dt><dd>{report.station}</dd></div><div><dt>Priority</dt><dd>{report.priority >= 70 ? 'Urgent' : 'Normal'}</dd></div><div><dt>Similar reports today</dt><dd>{report.similarToday ?? 0}</dd></div></dl><button type="button" className="primary another-report" onClick={() => { setReport(null); setText(''); setError(''); setStation('Vanaz'); }}>Report another problem</button>
         </article>}
       </section>
     </main><footer><a href="/staff">Staff view</a><span>Metro Saathi · Prototype</span></footer>
