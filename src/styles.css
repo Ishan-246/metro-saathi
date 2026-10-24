@@ -75,8 +75,12 @@ footer { border-top: 1px solid #DADCE0; background: white; padding: 18px max(cal
 .report-primary { flex-wrap: nowrap; }
 .report-primary .report-summary { overflow-wrap: anywhere; }
 .station-dots { display: grid; grid-template-columns: repeat(16, minmax(0, 1fr)); overflow: visible; align-items: start; }
-.station-dot { width: 100%; min-width: 0; flex: initial; white-space: normal; font-size: 11px; line-height: 1.15; overflow-wrap: anywhere; }
+.station-dot { width: 100%; min-width: 0; flex: initial; white-space: normal; font-size: 11px; line-height: 1.15; word-break: normal; overflow-wrap: normal; }
 .station-dot span { max-width: none; }
+.station-dot span { word-break: normal; overflow-wrap: normal; }
+.incident-card > strong { text-transform: none; }
+.emergency-entry > .emergency { margin: 0 0 0; border-radius: 6px 6px 0 0; }
+.emergency-entry > .staff-report { border-top-left-radius: 0; border-top-right-radius: 0; }
 .status-pill.open { background: #E7E8EB; color: #444; }
 .status-pill.in_progress { background: #DCEBFA; color: #1F5FA8; }
 .status-pill.resolved { background: #E3F1E4; color: #2E7D32; }
