@@ -15,8 +15,16 @@ const port = Number(process.env.PORT) || 3000;
 const distPath = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../dist');
 const indexPath = path.join(distPath, 'index.html');
 const reports = [];
-let nextReferenceNumber = 1042;
+// Sample data occupies the MS-1031 through MS-1042 range.
+let nextReferenceNumber = 1043;
 app.use(express.json());
+
+const allocateReferenceId = () => {
+  let referenceId;
+  do { referenceId = `MS-${nextReferenceNumber++}`; }
+  while (reports.some((report) => report.referenceId === referenceId));
+  return referenceId;
+};
 
 const todayStart = () => { const d = new Date(); d.setHours(0, 0, 0, 0); return d; };
 const isToday = (date) => new Date(date) >= todayStart();
@@ -71,7 +79,7 @@ app.post('/api/reports', async (request, response) => {
     return response.status(400).json({ error: 'Station and a description of at least 5 characters are required.' });
   }
   const { analysis, source } = await classifyReportWithSource(text.trim());
-  const report = { id: randomUUID(), referenceId: `MS-${nextReferenceNumber++}`, station: station.trim(), text: text.trim(), ...analysis, classificationSource: source, status: 'open', notes: [], createdAt: new Date().toISOString(), resolvedAt: null };
+  const report = { id: randomUUID(), referenceId: allocateReferenceId(), station: station.trim(), text: text.trim(), ...analysis, classificationSource: source, status: 'open', notes: [], createdAt: new Date().toISOString(), resolvedAt: null };
   refreshPriority(report);
   reports.push(report);
   const recentResolved = reports.find((item) => item.id !== report.id && item.station === report.station && item.category === report.category && item.status === 'resolved' && item.resolvedAt && Date.now() - new Date(item.resolvedAt).getTime() <= 2 * 60 * 60 * 1000);
