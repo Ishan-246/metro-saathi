@@ -25,7 +25,7 @@ textarea:focus, select:focus { outline: 3px solid #3b5ba933; }
 .primary { border: 0; border-radius: 6px; background: #C2539F; color: white; font-weight: 650; padding: 12px 18px; min-height: 46px; cursor: pointer; }.primary:disabled { opacity: .7; cursor: wait; }
 .error { color: #C62828; font-weight: 600; }
 .result { border-top: 1px solid #DADCE0; margin-top: 26px; padding-top: 20px; }
-.emergency { background: #C62828; color: white; padding: 12px 14px; border-radius: 5px; font-weight: 650; line-height: 1.5; margin-bottom: 16px; }
+.emergency-banner { background: #C62828; color: white; padding: 12px 14px; border-radius: 5px; font-weight: 650; line-height: 1.5; margin-bottom: 16px; }
 .registered { color: #2B2B2B; font-size: 22px; margin: 6px 0; }.reference { margin: 0; color: #555; }
 .urgency.emergency { background: #C62828; color: #fff; padding: 5px 9px; border-radius: 4px; }
 .result dl { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin: 18px 0; }.result dl div { background: #F4F5F7; padding: 11px; border-radius: 5px; }.result dt { color: #666; font-size: 12px; }.result dd { margin: 4px 0 0; font-weight: 650; }
@@ -44,8 +44,8 @@ footer { border-top: 1px solid #DADCE0; background: white; padding: 18px max(cal
 .station-dot i { width: 26px; height: 26px; border-radius: 50%; display: grid; place-items: center; background: #e6e8ed; color: #555; font-style: normal; font-weight: 700; }
 .station-dot.high i { background: #C62828; color: white; }.station-dot.medium i { background: #B26A00; color: white; }.station-dot.low i { background: #2E7D32; color: white; }
 .station-group { margin: 14px 0 24px; }.station-group > h3 { color: #5A4E9C; font-size: 18px; display: flex; justify-content: space-between; margin: 10px 0; }.station-group > h3 span { color: #666; font-size: 13px; font-weight: 400; }
-.staff-report { background: white; border: 1px solid #DADCE0; border-radius: 8px; padding: 16px; margin: 10px 0; box-shadow: 0 2px 8px #0000000a; }.staff-report.staff-emergency { border: 2px solid #C62828; }.staff-report .emergency { margin: -16px -16px 14px; border-radius: 6px 6px 0 0; }
-.staff-report-head { display: flex; justify-content: space-between; align-items: center; gap: 12px; }.priority-tag { font-size: 15px; }.priority-tag.emergency, .priority-tag.high { color: #C62828; }.priority-tag.medium { color: #B26A00; }.priority-tag.low { color: #2E7D32; }
+.staff-report { background: white; border: 1px solid #DADCE0; border-radius: 8px; padding: 16px; margin: 10px 0; box-shadow: 0 2px 8px #0000000a; }
+.staff-report-head { display: flex; justify-content: space-between; align-items: center; gap: 12px; }.priority-tag { font-size: 15px; }.priority-tag.medium { color: #B26A00; }.priority-tag.low { color: #2E7D32; }
 .status-pill { background: #eee; border-radius: 12px; padding: 4px 9px; text-transform: capitalize; font-size: 12px; }.status-pill.in_progress { background: #eee9fa; color: #5A4E9C; }.status-pill.resolved { background: #e6f2e7; color: #2E7D32; }
 .reason-line { color: #555; font-size: 13px; margin: 9px 0; }.staff-report blockquote { border-left: 3px solid #DADCE0; margin: 10px 0; padding: 4px 10px; color: #333; }.report-meta { display: flex; gap: 20px; color: #666; font-size: 12px; }.notes { padding-left: 20px; font-size: 13px; }.notes small { color: #777; }
 .report-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }.report-actions button, .note-form button { border: 0; background: #C2539F; color: white; border-radius: 5px; padding: 9px 12px; cursor: pointer; }.note-form { display: flex; gap: 8px; margin-top: 10px; }.note-form input { flex: 1; min-width: 0; border: 1px solid #3B5BA9; border-radius: 5px; padding: 8px; }
@@ -79,8 +79,6 @@ footer { border-top: 1px solid #DADCE0; background: white; padding: 18px max(cal
 .station-dot span { max-width: none; }
 .station-dot span { word-break: normal; overflow-wrap: normal; }
 .incident-card > strong { text-transform: none; }
-.emergency-entry > .emergency { margin: 0 0 0; border-radius: 6px 6px 0 0; }
-.emergency-entry > .staff-report { border-top-left-radius: 0; border-top-right-radius: 0; }
 .status-pill.open { background: #E7E8EB; color: #444; }
 .status-pill.in_progress { background: #DCEBFA; color: #1F5FA8; }
 .status-pill.resolved { background: #E3F1E4; color: #2E7D32; }

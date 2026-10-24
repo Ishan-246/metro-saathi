@@ -2,7 +2,7 @@ const base = { safety: 60, escalator_lift: 50, crowding: 45, ticketing: 30, clea
 const categoryLabel = { escalator_lift: 'Lift', safety: 'Safety', crowding: 'Crowding', ticketing: 'Ticketing', cleanliness: 'Cleanliness', other: 'Other' };
 
 export function priorityDetails(analysis, similarToday = 0) {
-  const priority = analysis.emergency ? 100 : Math.min(100,
+  const priority = analysis.emergency ? 100 : Math.min(99,
     (base[analysis.category] ?? base.other) + (analysis.danger ? 25 : 0) +
     (analysis.vulnerable ? 10 : 0) + (analysis.crowded ? 10 : 0) + Math.min(similarToday * 5, 15));
   const label = priority === 100 && analysis.emergency ? 'Emergency' : priority >= 70 ? 'High' : priority >= 40 ? 'Medium' : 'Low';

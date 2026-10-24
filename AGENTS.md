@@ -48,7 +48,7 @@ Report shape: { id, station, text, category, danger, vulnerable, crowded, emerge
 
 ## Step A — understanding (server/ai.js)
 Returns ONLY: { category, danger, vulnerable, crowded, emergency, summary }. Never a priority.
-- If OPENAI_API_KEY exists: call OpenAI with fixed instructions and JSON output; validate category is in the fixed list; on any error or timeout (8 s) use the keyword fallback.
+- Server startup loads `server/.env` with dotenv. If OPENAI_API_KEY exists: call OpenAI with fixed instructions and JSON output using the small, fast `gpt-4o-mini` model; validate category is in the fixed list; on any error or timeout (8 s) use the keyword fallback.
 - Keyword fallback (case-insensitive, English / Marathi / Hindi in English letters and Devanagari where easy):
   escalator_lift: escalator, lift, elevator, jinna, सरकता जिना, लिफ्ट
   safety: railing, fire, smoke, shock, wire, fight, theft, chor, aag, आग
@@ -62,11 +62,11 @@ Returns ONLY: { category, danger, vulnerable, crowded, emergency, summary }. Nev
   No category word → "other". Fallback summary = first 80 characters of the text.
 
 ## Step B — priority (server/priority.js)
-priority = base[category] + (danger ? 25 : 0) + (vulnerable ? 10 : 0) + (crowded ? 10 : 0) + min(similarToday × 5, 15), capped at 100.
-If emergency → priority = 100.
+priority = base[category] + (danger ? 25 : 0) + (vulnerable ? 10 : 0) + (crowded ? 10 : 0) + min(similarToday × 5, 15), capped at 99 for non-emergency reports.
+If emergency → priority = 100. Only an emergency report gets priority 100 and the Emergency label.
 - base: safety 60, escalator_lift 50, crowding 45, ticketing 30, cleanliness 25, other 20
 - similarToday = reports at the same station, same category, created today (excluding this one)
-- label: 100 Emergency, 70–99 High, 40–69 Medium, 0–39 Low
+- label: emergency=true → Emergency (100); otherwise 70–99 High, 40–69 Medium, 0–39 Low
 - reason line, e.g. "Lift · someone stuck · elderly · 2 similar"
 - team: escalator_lift → Maintenance, cleanliness → Housekeeping, crowding/safety → Station security, ticketing → Ticketing desk, other → Station manager
 
@@ -75,6 +75,7 @@ If emergency → priority = 100.
 - Multiple technician visits: stays in_progress, each visit is a note.
 - Auto-reopen: a new similar report within 2 hours of resolving reopens that report and adds a note "Reopened: reported again".
 - Duplicates raise priority through similarToday (max +15).
+- Incident scores use the highest linked report score plus the station spread bonus, capped at 99 unless a linked report is an emergency; only then is the incident score 100 and label Emergency.
 - The app flags and routes; it never calls 112 or dispatches anyone itself.
 
 ## Sample data

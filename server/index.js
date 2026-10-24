@@ -3,9 +3,12 @@ import { randomUUID } from 'node:crypto';
 import { existsSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { classifyReport } from './ai.js';
+import dotenv from 'dotenv';
+import { classifyReport, keywordFallback } from './ai.js';
 import { priorityDetails } from './priority.js';
 import { groupIncidents } from './incidents.js';
+
+dotenv.config({ path: path.resolve(path.dirname(fileURLToPath(import.meta.url)), '.env') });
 
 const app = express();
 const port = Number(process.env.PORT) || 3000;
@@ -40,7 +43,7 @@ const samples = [
 ];
 for (const [station, text] of samples) {
   const now = new Date();
-  const report = { id: randomUUID(), station, text, ...classifyReport(text), status: 'open', notes: [], createdAt: now.toISOString(), resolvedAt: null };
+  const report = { id: randomUUID(), station, text, ...keywordFallback(text), status: 'open', notes: [], createdAt: now.toISOString(), resolvedAt: null };
   refreshPriority(report);
   reports.push(report);
 }
@@ -53,16 +56,16 @@ for (const report of [reports[4], reports[7]]) {
   report.resolvedAt = new Date().toISOString();
 }
 
-app.get('/api/status', (_request, response) => response.json({ ai: false }));
+app.get('/api/status', (_request, response) => response.json({ ai: Boolean(process.env.OPENAI_API_KEY) }));
 app.get('/api/reports', (_request, response) => response.json(reports));
 app.get('/api/incidents', (_request, response) => response.json(groupIncidents(reports.filter((report) => report.status === 'open' || report.status === 'in_progress'))));
 
-app.post('/api/reports', (request, response) => {
+app.post('/api/reports', async (request, response) => {
   const { station, text } = request.body ?? {};
   if (typeof station !== 'string' || !station.trim() || typeof text !== 'string' || text.trim().length < 5) {
     return response.status(400).json({ error: 'Station and a description of at least 5 characters are required.' });
   }
-  const report = { id: randomUUID(), referenceId: `MS-${nextReferenceNumber++}`, station: station.trim(), text: text.trim(), ...classifyReport(text.trim()), status: 'open', notes: [], createdAt: new Date().toISOString(), resolvedAt: null };
+  const report = { id: randomUUID(), referenceId: `MS-${nextReferenceNumber++}`, station: station.trim(), text: text.trim(), ...await classifyReport(text.trim()), status: 'open', notes: [], createdAt: new Date().toISOString(), resolvedAt: null };
   refreshPriority(report);
   reports.push(report);
   const recentResolved = reports.find((item) => item.id !== report.id && item.station === report.station && item.category === report.category && item.status === 'resolved' && item.resolvedAt && Date.now() - new Date(item.resolvedAt).getTime() <= 2 * 60 * 60 * 1000);

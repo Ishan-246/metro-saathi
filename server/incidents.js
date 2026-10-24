@@ -36,8 +36,9 @@ export function groupIncidents(reports) {
       const stationNames = [...new Set(cluster.map((r) => r.station))].sort((a, b) => stationOrder.indexOf(a) - stationOrder.indexOf(b));
       const times = cluster.map((r) => new Date(r.createdAt).getTime());
       const highestPriority = Math.max(...cluster.map((r) => r.priority));
-      const priority = Math.min(100, highestPriority + Math.min((stationNames.length - 1) * 5, 15));
-      incidents.push({ category: cluster[0].category, stations: stationNames, reportCount: cluster.length, firstAt: new Date(Math.min(...times)).toISOString(), lastAt: new Date(Math.max(...times)).toISOString(), priority, label: priority === 100 ? 'Emergency' : priority >= 70 ? 'High' : priority >= 40 ? 'Medium' : 'Low', reportIds: cluster.map((r) => r.id) });
+      const emergency = cluster.some((report) => report.emergency);
+      const priority = emergency ? 100 : Math.min(99, highestPriority + Math.min((stationNames.length - 1) * 5, 15));
+      incidents.push({ category: cluster[0].category, stations: stationNames, reportCount: cluster.length, firstAt: new Date(Math.min(...times)).toISOString(), lastAt: new Date(Math.max(...times)).toISOString(), emergency, priority, label: emergency ? 'Emergency' : priority >= 70 ? 'High' : priority >= 40 ? 'Medium' : 'Low', reportIds: cluster.map((r) => r.id) });
     }
   }
   return incidents.sort((a, b) => b.priority - a.priority || new Date(a.firstAt) - new Date(b.firstAt));
