@@ -7,6 +7,7 @@ const referenceFor = (report) => report.referenceId || `MS-${1000 + [...report.i
 export default function App() {
   const [station, setStation] = useState('Vanaz'); const [text, setText] = useState(''); const [report, setReport] = useState(null);
   const [error, setError] = useState(''); const [ai, setAi] = useState(false); const [busy, setBusy] = useState(false);
+  const [reference, setReference] = useState(''); const [statusResult, setStatusResult] = useState(null); const [statusError, setStatusError] = useState(''); const [statusBusy, setStatusBusy] = useState(false);
   useEffect(() => {
     const isStaffPage = window.location.pathname === '/staff';
     document.title = isStaffPage ? 'Metro Saathi · Issue Desk' : 'Metro Saathi · Report an issue';
@@ -22,6 +23,17 @@ export default function App() {
       const data = await response.json(); if (!response.ok) throw new Error(data.error || 'Could not submit the report.'); setReport(data);
     } catch (err) { setError(`${err.message} Check that the server is running.`); } finally { setBusy(false); }
   }
+  async function checkStatus(event) {
+    event.preventDefault(); setStatusResult(null); setStatusError(''); setStatusBusy(true);
+    try {
+      const response = await fetch(`/api/reports/ref/${encodeURIComponent(reference.trim())}`);
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error || 'Could not find that report.');
+      setStatusResult(data);
+    } catch (err) { setStatusError(err.message === 'Failed to fetch' ? "We can't reach the report desk right now. Please try again shortly." : err.message); }
+    finally { setStatusBusy(false); }
+  }
+  const statusText = { open: 'Open', in_progress: 'In progress', resolved: 'Resolved' };
   if (window.location.pathname === '/staff') return <Staff />;
   return <>
     <div className="utility"><span>Prototype for Pune Metro Aqua Line · Not an official Maha-Metro service</span><div className="text-tools" aria-label="Text size"><button>A+</button><button>A</button><button>A−</button></div></div>
@@ -30,12 +42,16 @@ export default function App() {
       <section className="intro"><p className="eyebrow">PUNE METRO · AQUA LINE</p><h1>Help make your journey safer.</h1><p>Tell us what is happening at your station. Your report will be routed to the right team, with urgent issues brought forward first.</p><div className="notice"><strong>Emergency?</strong> Tell station staff now, or call 112. Pune Metro helpline: 1800 270 5501.</div></section>
       <section className="panel"><h2>Report a problem</h2><p className="subheading">तक्रार नोंदवा · Submit a report</p>
         <form onSubmit={submit}><label htmlFor="station">स्थान · Station</label><select id="station" value={station} onChange={(e) => setStation(e.target.value)}>{stations.map((item) => <option key={item}>{item}</option>)}</select>
-          <label htmlFor="description">तक्रार · What's wrong?</label><div className="examples"><span>Try:</span>{['Vanaz la escalator band aahe, khup gardi aahe', 'प्लेटफॉर्म पर बहुत भीड़ है', 'Stairs are wet and slippery near platform 2'].map((example) => <button type="button" key={example} onClick={() => setText(example)}>{example}</button>)}</div><textarea id="description" value={text} onChange={(e) => setText(e.target.value)} placeholder="Describe the problem in Marathi, Hindi or English…" rows="5" />
+          <label htmlFor="description">तक्रार · What's wrong?</label><div className="examples"><span>Try:</span>{['Vanaz la escalator band aahe, khup gardi aahe', 'प्लेटफॉर्म पर बहुत भीड़ है', 'Stairs are wet and slippery near platform 2'].map((example) => <button type="button" key={example} onClick={() => setText(example)}>{example}</button>)}</div><textarea id="description" value={text} maxLength={500} onChange={(e) => setText(e.target.value)} placeholder="Describe the problem in Marathi, Hindi or English…" rows="5" /><div className="text-counter" aria-live="polite">{text.length}/500 characters</div>
           <div className="form-foot"><span>Minimum 5 characters</span><button className="primary" disabled={busy}>{busy ? 'Sending…' : 'तक्रार नोंदवा · Submit report'}</button></div>{error && <p className="error" role="alert">{error}</p>}
         </form>
         {report && <article className="result" aria-live="polite">{report.emergency && <div className="emergency-banner">Emergency: tell station staff now, or call 112. Pune Metro helpline: 1800 270 5501.</div>}<h3 className="registered">Complaint registered</h3><p className="reference">Reference: {referenceFor(report)}</p>
           <dl><div><dt>Sent to</dt><dd>{report.team}</dd></div><div><dt>Station</dt><dd>{report.station}</dd></div><div><dt>Priority</dt><dd>{report.priority >= 70 ? 'Urgent' : 'Normal'}</dd></div><div><dt>Similar reports today</dt><dd>{report.similarToday ?? 0}</dd></div></dl><button type="button" className="primary another-report" onClick={() => { setReport(null); setText(''); setError(''); setStation('Vanaz'); }}>Report another problem</button>
         </article>}
+        <section className="status-check"><h3>Check status</h3><form onSubmit={checkStatus}><label htmlFor="reference">Reference ID</label><div className="status-lookup"><input id="reference" value={reference} onChange={(e) => { setReference(e.target.value); setStatusError(''); setStatusResult(null); }} placeholder="MS-1042" maxLength={24} /><button type="submit" className="primary" disabled={statusBusy || !reference.trim()}>{statusBusy ? 'Checking…' : 'Check status'}</button></div></form>
+          {statusError && <p className="error" role="alert">{statusError}</p>}
+          {statusResult && <dl className="status-result"><div><dt>Station</dt><dd>{statusResult.station}</dd></div><div><dt>Team</dt><dd>{statusResult.team}</dd></div><div><dt>Status</dt><dd>{statusText[statusResult.status] || statusResult.status}</dd></div><div><dt>Latest note</dt><dd>{statusResult.latestNote || 'No notes yet.'}</dd></div></dl>}
+        </section>
       </section>
     </main><footer><a href="/staff">Staff view</a><span>Metro Saathi · Prototype</span></footer>
   </>;

@@ -58,6 +58,11 @@ for (const report of [reports[4], reports[7]]) {
 
 app.get('/api/status', (_request, response) => response.json({ ai: Boolean(process.env.OPENAI_API_KEY) }));
 app.get('/api/reports', (_request, response) => response.json(reports));
+app.get('/api/reports/ref/:ref', (request, response) => {
+  const report = reports.find((item) => item.referenceId?.toLowerCase() === request.params.ref.trim().toLowerCase());
+  if (!report) return response.status(404).json({ error: 'No report found for that reference.' });
+  return response.json({ referenceId: report.referenceId, station: report.station, team: report.team, status: report.status, latestNote: report.notes.at(-1)?.text ?? null });
+});
 app.get('/api/incidents', (_request, response) => response.json(groupIncidents(reports.filter((report) => report.status === 'open' || report.status === 'in_progress'))));
 
 app.post('/api/reports', async (request, response) => {
