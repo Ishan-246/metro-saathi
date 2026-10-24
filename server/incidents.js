@@ -4,6 +4,7 @@ const WINDOW_MS = 60 * 60 * 1000;
 export function groupIncidents(reports) {
   const byCategory = new Map();
   for (const report of reports) {
+    if (report.status === 'resolved') continue;
     if (!byCategory.has(report.category)) byCategory.set(report.category, []);
     byCategory.get(report.category).push(report);
   }

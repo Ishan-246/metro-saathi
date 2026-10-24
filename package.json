@@ -8,6 +8,7 @@
   },
   "scripts": {
     "build": "vite build",
+    "test": "node --test server/priority.test.js server/incidents.test.js",
     "start": "node server/index.js",
     "server": "node --watch server/index.js",
     "dev": "vite --host 0.0.0.0"
