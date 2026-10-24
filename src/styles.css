@@ -60,3 +60,14 @@ footer { border-top: 1px solid #DADCE0; background: white; padding: 18px max(cal
 .resolved-section { margin: 28px 0; background: white; border: 1px solid #DADCE0; border-radius: 8px; padding: 14px 16px; }
 .resolved-section > summary { color: #5A4E9C; font-weight: 700; font-size: 17px; cursor: pointer; }
 .resolved-section[open] > summary { margin-bottom: 12px; }
+.station-strip-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.all-stations { border: 1px solid #5A4E9C; border-radius: 5px; background: white; color: #5A4E9C; padding: 7px 11px; cursor: pointer; }
+.station-dot { border: 2px solid transparent; background: transparent; font: inherit; cursor: pointer; }
+.station-dot i { width: 30px; height: 30px; }
+.station-dot.selected { border-color: #2B2B2B; border-radius: 6px; }
+.report-primary { display: flex; align-items: center; gap: 12px; min-width: 0; }
+.priority-tag { flex: 0 0 110px; min-width: 110px; padding: 4px 10px; border-radius: 999px; text-align: center; color: #fff; }
+.report-primary .report-summary { margin: 0; min-width: 0; flex: 1; font-size: 16px; }
+.report-meta { align-items: center; gap: 16px; min-height: 28px; margin-top: 5px; font-size: 13px; }
+.report-actions { justify-content: flex-end; }
+.report-actions button, .note-form button { font-size: 13px; padding: 7px 10px; }

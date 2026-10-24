@@ -55,7 +55,7 @@ for (const report of [reports[4], reports[7]]) {
 
 app.get('/api/status', (_request, response) => response.json({ ai: false }));
 app.get('/api/reports', (_request, response) => response.json(reports));
-app.get('/api/incidents', (_request, response) => response.json(groupIncidents(reports)));
+app.get('/api/incidents', (_request, response) => response.json(groupIncidents(reports.filter((report) => report.status === 'open' || report.status === 'in_progress'))));
 
 app.post('/api/reports', (request, response) => {
   const { station, text } = request.body ?? {};

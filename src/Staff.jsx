@@ -11,12 +11,10 @@ function ReportCard({ report, update }) {
   const reason = (report.reason || '').replace(/\s*·\s*/g, ' · ');
   return <article className={`staff-report ${report.emergency ? 'staff-emergency' : ''}`}>
     {report.emergency && <div className="emergency">Emergency · tell station staff now · 112 / Pune Metro helpline 1800 270 5501</div>}
-    <div className="staff-report-head"><strong className={`priority-tag ${report.label?.toLowerCase()}`}>{report.label} · {report.priority}</strong><span className={`status-pill ${report.status}`}>{report.status.replace('_', ' ')}</span></div>
     <p className="reason-line">{reason}</p>
-    {report.summary !== report.text && <p className="report-summary"><strong>{categoryLabel[report.category] ?? 'Other'}</strong> · {report.summary}</p>}
-    {report.summary === report.text && <p className="report-category"><strong>{categoryLabel[report.category] ?? 'Other'}</strong></p>}
+    <div className="report-primary"><strong className={`priority-tag ${report.label?.toLowerCase()}`}>{report.label} · {report.priority}</strong><p className="report-summary">{report.summary}</p></div>
+    <div className="report-meta"><span>{dateLabel(report.createdAt)}</span><span>{report.team}</span><span className={`status-pill ${report.status}`}>{report.status.replace('_', ' ')}</span></div>
     <blockquote>{report.text}</blockquote>
-    <div className="report-meta"><span>{dateLabel(report.createdAt)}</span><span>{report.team}</span></div>
     {report.notes?.length > 0 && <ul className="notes">{report.notes.map((item, i) => <li key={`${item.at}-${i}`}>{item.text} <small>{dateLabel(item.at)}</small></li>)}</ul>}
     <div className="report-actions">
       {report.status === 'open' && <button onClick={() => patch({ status: 'in_progress' })}>Start work</button>}
@@ -31,6 +29,7 @@ function ReportCard({ report, update }) {
 export default function Staff() {
   const [reports, setReports] = useState([]);
   const [incidents, setIncidents] = useState([]);
+  const [selectedStation, setSelectedStation] = useState('');
   const [ai, setAi] = useState(false);
   const [error, setError] = useState('');
   const load = useCallback(async () => {
@@ -45,8 +44,9 @@ export default function Staff() {
   const today = new Date(); today.setHours(0, 0, 0, 0);
   const todayReports = reports.filter((r) => new Date(r.createdAt) >= today);
   const openReports = reports.filter((r) => r.status !== 'resolved');
-  const groups = stations.map((station) => ({ station, reports: openReports.filter((r) => r.station === station).sort((a, b) => b.priority - a.priority || new Date(a.createdAt) - new Date(b.createdAt)) })).filter((g) => g.reports.length);
-  const emergencies = openReports.filter((r) => r.emergency).sort((a, b) => b.priority - a.priority || new Date(a.createdAt) - new Date(b.createdAt));
+  const filteredOpenReports = selectedStation ? openReports.filter((r) => r.station === selectedStation) : openReports;
+  const groups = stations.filter((station) => !selectedStation || station === selectedStation).map((station) => ({ station, reports: filteredOpenReports.filter((r) => r.station === station).sort((a, b) => b.priority - a.priority || new Date(a.createdAt) - new Date(b.createdAt)) })).filter((g) => g.reports.length);
+  const emergencies = filteredOpenReports.filter((r) => r.emergency).sort((a, b) => b.priority - a.priority || new Date(a.createdAt) - new Date(b.createdAt));
   const resolvedToday = todayReports.filter((r) => r.status === 'resolved').sort((a, b) => new Date(b.resolvedAt) - new Date(a.resolvedAt));
   const updateReport = (id, payload) => update(id, payload);
   const shownIncidents = incidents.filter((incident) => incident.reportCount >= 2);
@@ -57,13 +57,13 @@ export default function Staff() {
     <main className="staff-main"><h1>Staff dashboard</h1>
       {error && <p className="error" role="alert">{error}</p>}
       <section className="stats" aria-label="Report statistics"><Stat value={todayReports.length} label="Reports today" /><Stat value={openReports.length} label="Open on the line" /><Stat value={openReports.filter((r) => r.priority >= 70).length} label="High / emergency open" /><Stat value={todayReports.filter((r) => r.status === 'resolved').length} label="Resolved today" /></section>
-      <section className="station-strip"><h2>Aqua Line stations</h2><div className="station-dots">{stations.map((name) => { const items = openReports.filter((r) => r.station === name); const max = Math.max(0, ...items.map((r) => r.priority)); return <a className={`station-dot ${max >= 70 ? 'high' : max >= 40 ? 'medium' : items.length ? 'low' : ''}`} href={`#station-${encodeURIComponent(name)}`} key={name} title={`${name}: ${items.length} open`}><i>{items.length}</i><span>{name}</span></a>; })}</div></section>
+      <section className="station-strip"><div className="station-strip-head"><h2>Aqua Line stations</h2><button className="all-stations" onClick={() => setSelectedStation('')}>All stations</button></div><div className="station-dots">{stations.map((name) => { const items = openReports.filter((r) => r.station === name); const max = Math.max(0, ...items.map((r) => r.priority)); return <button className={`station-dot ${max >= 70 ? 'high' : max >= 40 ? 'medium' : items.length ? 'low' : ''} ${selectedStation === name ? 'selected' : ''}`} onClick={() => setSelectedStation((current) => current === name ? '' : name)} key={name} title={`${name}: ${items.length} open`} aria-pressed={selectedStation === name}><i>{items.length}</i><span>{name}</span></button>; })}</div></section>
       {emergencies.length > 0 && <section className="emergency-list"><h2>Emergencies · immediate attention</h2>{emergencies.map((r) => <ReportCard key={r.id} report={r} update={updateReport} />)}</section>}
-      <section className="incidents"><h2>Incidents</h2>{shownIncidents.map((incident) => <article className="incident-card" key={incident.reportIds.join('-')}><strong>{categoryLabel[incident.category] ?? 'Other'}</strong> across {incident.stations.join(', ')} <span>· {incident.reportCount} reports · {incident.label}</span></article>)}{shownIncidents.length === 0 && <p className="muted">No linked reports yet.</p>}</section>
+      <section className="incidents"><h2>Incidents</h2>{shownIncidents.map((incident) => <article className="incident-card" key={incident.reportIds.join('-')}><strong>{categoryLabel[incident.category] ?? 'Other'} {incident.stations.length === 1 ? 'at' : 'across'} {incident.stations.join(', ')}</strong> <span>· {incident.reportCount} reports · {incident.label}</span></article>)}{shownIncidents.length === 0 && <p className="muted">No linked reports yet.</p>}</section>
       <section className="station-reports"><h2>Reports by station</h2>{groups.map(({ station, reports: items }) => <section className="station-group" id={`station-${encodeURIComponent(station)}`} key={station}><h3>{station}<span>{items.length} open</span></h3>{items.map((r) => <ReportCard key={r.id} report={r} update={updateReport} />)}</section>)}</section>
       <details className="resolved-section"><summary>Resolved today ({resolvedToday.length})</summary>{resolvedToday.length ? resolvedToday.map((r) => <ReportCard key={r.id} report={r} update={updateReport} />) : <p className="muted">No reports resolved today.</p>}</details>
     </main>
-    <footer><a href="/">Commuter page</a><span>Auto-refreshes every 3 seconds</span></footer>
+    <footer><a href="/">Commuter page</a><span>Includes sample reports for demo. Data resets on restart (prototype, no database).</span></footer>
   </>;
 }
 function Stat({ value, label }) { return <article className="stat-card"><strong>{value}</strong><span>{label}</span></article>; }
