@@ -18,17 +18,20 @@ Page 1 — "/" Commuter page
 - Top utility bar: "Prototype for Pune Metro Aqua Line · Not an official Maha-Metro service" on the left; "A+ A A−" text-size buttons on the right.
 - Header: "Metro Saathi" + status badge ("AI ready" or "Offline fallback").
 - Form card: "स्थानक · Station" dropdown (16 Aqua Line stations), "तक्रार · What's wrong?" text area, "तक्रार नोंदवा · Submit report" button. Min 5 characters, else show "Please describe the problem".
+- Show three "Try:" example chips that fill the complaint text area: "Vanaz la escalator band aahe, khup gardi aahe", "प्लेटफॉर्म पर बहुत भीड़ है", and "Stairs are wet and slippery near platform 2".
 - After submit, commuter result card shows only: “Complaint registered”, short reference ID (MS-1042 style), team, station, “Urgent” (priority 70+) or “Normal”, and similar reports today. If emergency, show the red emergency banner. Priority number, label, and reason are staff-only.
 - If Emergency: red banner on the result card: "Emergency: tell station staff now, or call 112. Pune Metro helpline: 1800 270 5501."
 - Laptop: short intro on the left, form card on the right. Phone: one column.
 - Footer: small "Staff view" link.
+- Use page titles "Metro Saathi · Report an issue" and "Metro Saathi · Issue Desk", plus a simple SVG favicon and inline train icon in both headers.
 
 Page 2 — "/staff" Staff dashboard ("Metro Saathi · Issue Desk")
 - Same utility bar and header + status badge.
 - Four stat cards: reports today, open on the line (open + in progress), high/emergency open, resolved today.
 - Laptop: Aqua Line strip (16 stations as CSS dots, each showing open-issue count, coloured by highest urgency). Phone: scrolling station chips instead.
 - Emergencies pinned at the top with a red banner.
-- Open reports grouped by station, highest priority first (tie: oldest first). Each shows: priority label + number, reason line, category, English summary, original text, time, status, team, notes.
+- Open reports grouped by station, highest priority first (tie: oldest first). Each shows: priority label + number, AI/Keywords classification source, reason line, category, English summary, original text, time, status, team, notes.
+- Show "Loading reports…" while first loading and a friendly message if the API cannot be reached.
 - Buttons per report: "Start work" (open → in_progress), "Add note", "Mark resolved", and "Reopen" on resolved ones.
 - Auto-refresh every 3 seconds.
 
@@ -44,7 +47,7 @@ Page 2 — "/staff" Staff dashboard ("Metro Saathi · Issue Desk")
 - GET   /api/reports       → all reports
 - PATCH /api/reports/:id   { status?, note? } → change status or add a note
 - GET   /api/status        → { ai: true/false } for the badge
-Report shape: { id, station, text, category, danger, vulnerable, crowded, emergency, summary, priority, label, reason, team, status: "open"|"in_progress"|"resolved", notes: [{text, at}], createdAt, resolvedAt }
+Report shape: { id, station, text, category, danger, vulnerable, crowded, emergency, summary, classificationSource: "openai"|"keywords", priority, label, reason, team, status: "open"|"in_progress"|"resolved", notes: [{text, at}], createdAt, resolvedAt }
 
 ## Step A — understanding (server/ai.js)
 Returns ONLY: { category, danger, vulnerable, crowded, emergency, summary }. Never a priority.
@@ -83,6 +86,7 @@ About 10 reports load when the server starts: mixed Marathi (Devanagari and Engl
 
 ## Style (government transit look, like punemetrorail.org — no logo)
 - White background; page sections on very light grey #F4F5F7.
+- Use a consistent 8/16/24px spacing scale and 1px #DADCE0 borders with 8px radius for cards on both pages.
 - Top nav/header band: purple #5A4E9C with white text. Thin dark-grey ticker/utility strip #3E4249 with white text.
 - Primary buttons: magenta #C2539F, white text. Field labels: magenta #B4428F. Links: blue #1F5FA8. Headings: dark grey #2B2B2B. Body text #3A3A3A.
 - Cards: white, 1px border #DADCE0, radius 8px, light shadow. Inputs: 1px border #3B5BA9-ish blue, radius 6px, 44px tall.

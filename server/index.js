@@ -4,7 +4,7 @@ import { existsSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import dotenv from 'dotenv';
-import { classifyReport, keywordFallback } from './ai.js';
+import { classifyReportWithSource, keywordFallback } from './ai.js';
 import { priorityDetails } from './priority.js';
 import { groupIncidents } from './incidents.js';
 
@@ -43,7 +43,7 @@ const samples = [
 ];
 for (const [station, text] of samples) {
   const now = new Date();
-  const report = { id: randomUUID(), station, text, ...keywordFallback(text), status: 'open', notes: [], createdAt: now.toISOString(), resolvedAt: null };
+  const report = { id: randomUUID(), station, text, ...keywordFallback(text), classificationSource: 'keywords', status: 'open', notes: [], createdAt: now.toISOString(), resolvedAt: null };
   refreshPriority(report);
   reports.push(report);
 }
@@ -65,7 +65,8 @@ app.post('/api/reports', async (request, response) => {
   if (typeof station !== 'string' || !station.trim() || typeof text !== 'string' || text.trim().length < 5) {
     return response.status(400).json({ error: 'Station and a description of at least 5 characters are required.' });
   }
-  const report = { id: randomUUID(), referenceId: `MS-${nextReferenceNumber++}`, station: station.trim(), text: text.trim(), ...await classifyReport(text.trim()), status: 'open', notes: [], createdAt: new Date().toISOString(), resolvedAt: null };
+  const { analysis, source } = await classifyReportWithSource(text.trim());
+  const report = { id: randomUUID(), referenceId: `MS-${nextReferenceNumber++}`, station: station.trim(), text: text.trim(), ...analysis, classificationSource: source, status: 'open', notes: [], createdAt: new Date().toISOString(), resolvedAt: null };
   refreshPriority(report);
   reports.push(report);
   const recentResolved = reports.find((item) => item.id !== report.id && item.station === report.station && item.category === report.category && item.status === 'resolved' && item.resolvedAt && Date.now() - new Date(item.resolvedAt).getTime() <= 2 * 60 * 60 * 1000);

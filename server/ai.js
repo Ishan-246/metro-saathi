@@ -39,8 +39,8 @@ function validateAnalysis(value, originalText) {
 }
 
 let client;
-export async function classifyReport(text) {
-  if (!process.env.OPENAI_API_KEY) return keywordFallback(text);
+export async function classifyReportWithSource(text) {
+  if (!process.env.OPENAI_API_KEY) return { analysis: keywordFallback(text), source: 'keywords' };
   try {
     client ??= new OpenAI({ apiKey: process.env.OPENAI_API_KEY, timeout: 8000, maxRetries: 0 });
     const response = await client.responses.create({
@@ -49,8 +49,12 @@ export async function classifyReport(text) {
       input: text,
       text: { format: { type: 'json_object' } },
     }, { signal: AbortSignal.timeout(8000) });
-    return validateAnalysis(JSON.parse(response.output_text), text);
+    return { analysis: validateAnalysis(JSON.parse(response.output_text), text), source: 'openai' };
   } catch {
-    return keywordFallback(text);
+    return { analysis: keywordFallback(text), source: 'keywords' };
   }
+}
+
+export async function classifyReport(text) {
+  return (await classifyReportWithSource(text)).analysis;
 }
